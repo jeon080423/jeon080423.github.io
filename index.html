@@ -10,11 +10,22 @@
   </style>
   <script>
     if (window.location.hostname === 'jeon080423.github.io') {
-      window.location.href = "/AHPkr/";
+      window.location.href = "https://www.ahpmaster.com/";
     }
   </script>
 </head>
 <body>
-  <iframe src="https://ahpkrj.streamlit.app/?embed=true"></iframe>
+  <iframe id="streamlit-app" src=""></iframe>
+  <script>
+    // Forward query parameters to the iframe src dynamically
+    const queryParams = window.location.search;
+    const baseSrc = "https://ahpkrj.streamlit.app/?embed=true";
+    if (queryParams) {
+      // Append query parameters with '&' since '?embed=true' already has '?'
+      document.getElementById('streamlit-app').src = baseSrc + "&" + queryParams.substring(1);
+    } else {
+      document.getElementById('streamlit-app').src = baseSrc;
+    }
+  </script>
 </body>
 </html>
