@@ -40,6 +40,10 @@
             background-color: #f8fafc;
             background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='#e2e8f0' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
+        /* 🌐 언어 선택 (KR / EN / JP 나열) */
+        .lang-option { color: #6b7280; border-radius: 9999px; transition: all .2s; }
+        .lang-option:hover { color: #4f46e5; }
+        .lang-option.active { background: #eef2ff; color: #4f46e5; font-weight: 800; }
     </style>
     
     <!-- 📄 구글 구조화 데이터 (JSON-LD) -->
@@ -86,10 +90,14 @@
                     <img src="ahp_master_logo_compact.svg" alt="AHP Master" class="h-10 sm:h-11 w-auto object-contain" />
                 </a>
                 <div class="flex items-center gap-4">
-                    <!-- 🌐 English 변경 기능 -->
-                    <a href="#" id="lang-toggle" class="text-gray-600 hover:text-indigo-600 font-semibold transition px-3 py-2 text-sm">
-                        English
-                    </a>
+                    <!-- 🌐 언어 선택: KR / EN / JP 나열 -->
+                    <div class="flex items-center gap-0.5 text-sm font-semibold">
+                        <button type="button" data-lang="ko" class="lang-option px-2 py-1">KR</button>
+                        <span class="text-gray-300 select-none">|</span>
+                        <button type="button" data-lang="en" class="lang-option px-2 py-1">EN</button>
+                        <span class="text-gray-300 select-none">|</span>
+                        <button type="button" data-lang="ja" class="lang-option px-2 py-1">JP</button>
+                    </div>
                     <!-- 🔥 블로그로 연결 -->
                     <a href="https://morison.tistory.com/" target="_blank" class="blog-link bg-[#2563EB] text-white px-5 py-2.5 rounded-full font-semibold hover:bg-blue-700 transition shadow-md hover:shadow-blue-400/25 text-sm">
                         Blog
@@ -293,7 +301,6 @@
     <script>
         const translations = {
             ko: {
-                langToggle: "English",
                 heroTitle: '신뢰할 수 있는 <span class="gradient-text">AHP 프로그램</span>,<br/>AHP 마스터로 시작해 보세요.',
                 heroDesc: '복잡한 엑셀 수식 없이 웹 브라우저에서 바로 끝내는 AHP 분석.<br>일반 학술 연구부터 예비타당성 종합평가까지 최고의 신뢰도를 보장합니다.',
                 btnStartStandard: '일반/학술 AHP 분석 시작하기',
@@ -314,7 +321,6 @@
                 planSuffix: "개월"
             },
             en: {
-                langToggle: "日本語",
                 heroTitle: 'Reliable <span class="gradient-text">AHP Analysis & Software</span>,<br/>Start with AHP Master.',
                 heroDesc: 'AHP analysis completed directly in your web browser without complex Excel formulas.<br>Guarantees the highest reliability from academic research to preliminary feasibility studies.',
                 btnStartStandard: 'Start General/Academic Analysis',
@@ -335,7 +341,6 @@
                 planSuffix: " Months"
             },
             ja: {
-                langToggle: "한국어",
                 heroTitle: '信頼できる<span class="gradient-text">AHP分析ソフトウェア</span>、<br/>AHPマスターで始めましょう。',
                 heroDesc: '複雑なExcel数式なしで、Webブラウザで完結するAHP分析。<br>一般的な学術研究から予備的妥当性評価まで、最高の信頼性を保証します。',
                 btnStartStandard: '一般・学術AHP分析を始める',
@@ -365,7 +370,10 @@
             document.documentElement.lang = lang;
 
             const t = translations[lang];
-            document.getElementById('lang-toggle').innerText = t.langToggle;
+            // 언어 선택 버튼 활성 상태 표시 (KR / EN / JP)
+            document.querySelectorAll('.lang-option').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+            });
             document.getElementById('hero-title').innerHTML = t.heroTitle;
             document.getElementById('hero-desc').innerHTML = t.heroDesc;
             document.getElementById('btn-start-standard').innerText = t.btnStartStandard;
@@ -402,15 +410,17 @@
             });
 
             // Update CTA button hrefs with lang parameter
-            document.getElementById('btn-start-standard').href = 'https://app.ahpmaster.com/?mode=standard&lang=' + lang;
-            document.getElementById('btn-start-yeta').href = 'https://app.ahpmaster.com/?mode=yeta&lang=' + lang;
+            // 앱은 한국어/영어만 지원하므로 일본어 선택 시 앱에는 ko로 전달 (2026-11-17)
+            const appLang = (lang === 'ja') ? 'ko' : lang;
+            document.getElementById('btn-start-standard').href = 'https://app.ahpmaster.com/?mode=standard&lang=' + appLang;
+            document.getElementById('btn-start-yeta').href = 'https://app.ahpmaster.com/?mode=yeta&lang=' + appLang;
         }
 
-        document.getElementById('lang-toggle').addEventListener('click', function(e) {
-            e.preventDefault();
-            // 2026-11-01: 일본어 추가로 3개 언어 순환 (ko → en → ja → ko)
-            const nextLang = currentLang === 'ko' ? 'en' : (currentLang === 'en' ? 'ja' : 'ko');
-            updateLanguage(nextLang);
+        // 언어 선택 버튼 (KR / EN / JP) — 클릭 시 해당 언어로 즉시 전환
+        document.querySelectorAll('.lang-option').forEach(btn => {
+            btn.addEventListener('click', function() {
+                updateLanguage(btn.getAttribute('data-lang'));
+            });
         });
 
         // ==========================================
