@@ -410,10 +410,9 @@
             });
 
             // Update CTA button hrefs with lang parameter
-            // 앱은 한국어/영어만 지원하므로 일본어 선택 시 앱에는 ko로 전달 (2026-11-17)
-            const appLang = (lang === 'ja') ? 'ko' : lang;
-            document.getElementById('btn-start-standard').href = 'https://app.ahpmaster.com/?mode=standard&lang=' + appLang;
-            document.getElementById('btn-start-yeta').href = 'https://app.ahpmaster.com/?mode=yeta&lang=' + appLang;
+            // 앱은 한국어/영어/일본어를 모두 지원 (2026-11-17 일본어 추가)
+            document.getElementById('btn-start-standard').href = 'https://app.ahpmaster.com/?mode=standard&lang=' + lang;
+            document.getElementById('btn-start-yeta').href = 'https://app.ahpmaster.com/?mode=yeta&lang=' + lang;
         }
 
         // 언어 선택 버튼 (KR / EN / JP) — 클릭 시 해당 언어로 즉시 전환
