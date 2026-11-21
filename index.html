@@ -66,16 +66,6 @@
         }
         #app-overlay-loader .msg { margin-top: 18px; font-size: 16px; font-weight: 600; }
         @keyframes app-overlay-spin { to { transform: rotate(360deg); } }
-        #app-overlay-back {
-            position: absolute; top: 12px; left: 12px; z-index: 3;
-            background: #ffffff; color: #2A3663;
-            border: 1px solid #D9E4F0; border-radius: 9999px;
-            padding: 8px 16px; font-size: 14px; font-weight: 600;
-            font-family: 'Pretendard', -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
-            box-shadow: 0 2px 8px rgba(42, 54, 99, 0.15);
-            cursor: pointer;
-        }
-        #app-overlay-back:hover { background: #F0F1F3; }
     </style>
     
     <!-- 📄 구글 구조화 데이터 (JSON-LD) -->
@@ -584,7 +574,6 @@
             <div class="spinner" aria-hidden="true"></div>
             <div class="msg" id="app-overlay-loader-msg">앱을 불러오는 중입니다…</div>
         </div>
-        <button id="app-overlay-back" type="button">← 랜딩으로 돌아가기</button>
         <iframe id="app-preload-frame" src="" title="AHP Master 앱"></iframe>
     </div>
     <script>
@@ -593,19 +582,18 @@
     (function () {
         var APP_BASE = 'https://app.ahpmaster.com/';
         var overlayTexts = {
-            ko: { loading: '앱을 불러오는 중입니다…', back: '← 랜딩으로 돌아가기' },
-            en: { loading: 'Loading the app…', back: '← Back to Home' },
-            ja: { loading: 'アプリを読み込んでいます…', back: '← トップページに戻る' }
+            ko: { loading: '앱을 불러오는 중입니다…' },
+            en: { loading: 'Loading the app…' },
+            ja: { loading: 'アプリを読み込んでいます…' }
         };
 
         var overlay = document.getElementById('app-overlay');
         var frame = document.getElementById('app-preload-frame');
         var loader = document.getElementById('app-overlay-loader');
         var loaderMsg = document.getElementById('app-overlay-loader-msg');
-        var backBtn = document.getElementById('app-overlay-back');
         var btnStandard = document.getElementById('btn-start-standard');
         var btnYeta = document.getElementById('btn-start-yeta');
-        if (!overlay || !frame || !loader || !backBtn || !btnStandard || !btnYeta) { return; }
+        if (!overlay || !frame || !loader || !btnStandard || !btnYeta) { return; }
 
         var preloadedMode = 'standard';
         var preloadedLang = 'ko';
@@ -642,7 +630,6 @@
         function setOverlayTexts(lang) {
             var t = overlayTexts[lang] || overlayTexts.ko;
             loaderMsg.textContent = t.loading;
-            backBtn.textContent = t.back;
         }
 
         /* 프리로드 iframe을 현재 언어·모드에 동기화. URL이 이미 같으면 건드리지 않는다. */
@@ -712,7 +699,6 @@
             e.preventDefault();
             showApp('yeta');
         });
-        backBtn.addEventListener('click', function () { hideApp(false); });
         window.addEventListener('popstate', function () {
             if (overlayShown) { hideApp(true); }
         });
