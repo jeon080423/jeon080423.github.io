@@ -44,6 +44,38 @@
         .lang-option { color: #6b7280; border-radius: 9999px; transition: all .2s; }
         .lang-option:hover { color: #4f46e5; }
         .lang-option.active { background: #eef2ff; color: #4f46e5; font-weight: 800; }
+        /* [2026-11-21 앱 프리로드] 백그라운드 프리로드 + 같은 탭 전체 화면 오버레이 */
+        #app-overlay {
+            position: fixed; inset: 0; z-index: 100;
+            visibility: hidden; pointer-events: none;
+            background: #ffffff;
+        }
+        #app-overlay.visible { visibility: visible; pointer-events: auto; }
+        #app-overlay iframe { border: none; width: 100%; height: 100%; display: block; }
+        #app-overlay-loader {
+            position: absolute; inset: 0; z-index: 2;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: #ffffff; color: #2A3663;
+            font-family: 'Pretendard', -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+        }
+        #app-overlay-loader.hidden { display: none; }
+        #app-overlay-loader .spinner {
+            width: 44px; height: 44px; border-radius: 50%;
+            border: 4px solid #D9E4F0; border-top-color: #2A3663;
+            animation: app-overlay-spin 0.9s linear infinite;
+        }
+        #app-overlay-loader .msg { margin-top: 18px; font-size: 16px; font-weight: 600; }
+        @keyframes app-overlay-spin { to { transform: rotate(360deg); } }
+        #app-overlay-back {
+            position: absolute; top: 12px; left: 12px; z-index: 3;
+            background: #ffffff; color: #2A3663;
+            border: 1px solid #D9E4F0; border-radius: 9999px;
+            padding: 8px 16px; font-size: 14px; font-weight: 600;
+            font-family: 'Pretendard', -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+            box-shadow: 0 2px 8px rgba(42, 54, 99, 0.15);
+            cursor: pointer;
+        }
+        #app-overlay-back:hover { background: #F0F1F3; }
     </style>
     
     <!-- 📄 구글 구조화 데이터 (JSON-LD) -->
@@ -413,6 +445,9 @@
             // 앱은 한국어/영어/일본어를 모두 지원 (2026-11-17 일본어 추가)
             document.getElementById('btn-start-standard').href = 'https://app.ahpmaster.com/?mode=standard&lang=' + lang;
             document.getElementById('btn-start-yeta').href = 'https://app.ahpmaster.com/?mode=yeta&lang=' + lang;
+
+            // [2026-11-21 앱 프리로드] 언어 변경 시 프리로드 iframe도 새 언어로 동기화
+            if (typeof syncAppPreload === 'function') { syncAppPreload(); }
         }
 
         // 언어 선택 버튼 (KR / EN / JP) — 클릭 시 해당 언어로 즉시 전환
@@ -541,6 +576,153 @@
 
         // 초기 언어 설정 적용
         updateLanguage(currentLang);
+    </script>
+ 
+    <!-- [2026-11-21 앱 프리로드] 백그라운드 프리로드 + 같은 탭 전체 화면 오버레이 -->
+    <div id="app-overlay" aria-hidden="true">
+        <div id="app-overlay-loader" role="status" aria-live="polite">
+            <div class="spinner" aria-hidden="true"></div>
+            <div class="msg" id="app-overlay-loader-msg">앱을 불러오는 중입니다…</div>
+        </div>
+        <button id="app-overlay-back" type="button">← 랜딩으로 돌아가기</button>
+        <iframe id="app-preload-frame" src="" title="AHP Master 앱"></iframe>
+    </div>
+    <script>
+    /* [2026-11-21 앱 프리로드] 랜딩 페이지가 열릴 때 앱을 백그라운드에서 미리 불러오고,
+       버튼 클릭 시 새 탭 대신 같은 탭 전체 화면 오버레이로 표시한다. */
+    (function () {
+        var APP_BASE = 'https://app.ahpmaster.com/';
+        var overlayTexts = {
+            ko: { loading: '앱을 불러오는 중입니다…', back: '← 랜딩으로 돌아가기' },
+            en: { loading: 'Loading the app…', back: '← Back to Home' },
+            ja: { loading: 'アプリを読み込んでいます…', back: '← トップページに戻る' }
+        };
+
+        var overlay = document.getElementById('app-overlay');
+        var frame = document.getElementById('app-preload-frame');
+        var loader = document.getElementById('app-overlay-loader');
+        var loaderMsg = document.getElementById('app-overlay-loader-msg');
+        var backBtn = document.getElementById('app-overlay-back');
+        var btnStandard = document.getElementById('btn-start-standard');
+        var btnYeta = document.getElementById('btn-start-yeta');
+        if (!overlay || !frame || !loader || !backBtn || !btnStandard || !btnYeta) { return; }
+
+        var preloadedMode = 'standard';
+        var preloadedLang = 'ko';
+        var currentFrameUrl = '';
+        var frameLoaded = false;
+        var overlayShown = false;
+        var overlayStatePushed = false;
+
+        function currentLang() {
+            var lang = (localStorage.getItem('lang') || 'ko').toLowerCase();
+            return overlayTexts[lang] ? lang : 'ko';
+        }
+
+        function appUrl(mode, lang) {
+            return APP_BASE + '?mode=' + mode + '&lang=' + lang;
+        }
+
+        /* iframe을 새 URL로 이동. location.replace()를 써서 세션 기록에 새 항목을
+           추가하지 않는다 (src를 바꾸면 iframe 탐색이 최상위 history.length를 늘려
+           뒤로가기가 iframe 탐색을 되돌리게 됨). replace가 안 되면 src로 폴백한다. */
+        function navigateFrame(url) {
+            try {
+                var win = frame.contentWindow;
+                if (win && win.location && win.location.replace) {
+                    win.location.replace(url);
+                    frame.setAttribute('data-current-url', url);
+                    return;
+                }
+            } catch (e) { /* fall through to src fallback */ }
+            frame.setAttribute('src', url);
+            frame.setAttribute('data-current-url', url);
+        }
+
+        function setOverlayTexts(lang) {
+            var t = overlayTexts[lang] || overlayTexts.ko;
+            loaderMsg.textContent = t.loading;
+            backBtn.textContent = t.back;
+        }
+
+        /* 프리로드 iframe을 현재 언어·모드에 동기화. URL이 이미 같으면 건드리지 않는다. */
+        function syncAppPreload() {
+            var lang = currentLang();
+            setOverlayTexts(lang);
+            var target = appUrl(preloadedMode, lang);
+            if (currentFrameUrl !== target) {
+                frameLoaded = false;
+                navigateFrame(target);
+                currentFrameUrl = target;
+            }
+            preloadedLang = lang;
+        }
+        window.syncAppPreload = syncAppPreload;
+
+        frame.addEventListener('load', function () {
+            frameLoaded = true;
+            loader.classList.add('hidden');
+        });
+
+        function showApp(mode) {
+            var lang = currentLang();
+            setOverlayTexts(lang);
+            if (preloadedMode !== mode || preloadedLang !== lang) {
+                preloadedMode = mode;
+                preloadedLang = lang;
+                frameLoaded = false;
+                loader.classList.remove('hidden');
+                var target = appUrl(mode, lang);
+                navigateFrame(target);
+                currentFrameUrl = target;
+            } else if (!frameLoaded) {
+                loader.classList.remove('hidden');
+            } else {
+                loader.classList.add('hidden');
+            }
+            overlay.classList.add('visible');
+            overlay.setAttribute('aria-hidden', 'false');
+            overlayShown = true;
+            document.body.style.overflow = 'hidden';
+            try {
+                history.pushState({ ahpAppOverlay: true }, '');
+                overlayStatePushed = true;
+            } catch (e) { overlayStatePushed = false; }
+        }
+
+        function hideApp(fromPopstate) {
+            if (!overlayShown) { return; }
+            overlayShown = false;
+            overlay.classList.remove('visible');
+            overlay.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+            if (!fromPopstate && overlayStatePushed) {
+                overlayStatePushed = false;
+                history.back();
+            } else {
+                overlayStatePushed = false;
+            }
+        }
+
+        btnStandard.addEventListener('click', function (e) {
+            e.preventDefault();
+            showApp('standard');
+        });
+        btnYeta.addEventListener('click', function (e) {
+            e.preventDefault();
+            showApp('yeta');
+        });
+        backBtn.addEventListener('click', function () { hideApp(false); });
+        window.addEventListener('popstate', function () {
+            if (overlayShown) { hideApp(true); }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && overlayShown) { hideApp(false); }
+        });
+
+        /* 페이지 로드 시 백그라운드 프리로드 시작 */
+        syncAppPreload();
+    })();
     </script>
 </body>
 </html>
