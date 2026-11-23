@@ -451,7 +451,7 @@
         // 🟢 실시간 정식 가입자 가상 데이터 100개 및 가입일 생성
         // ==========================================
         const fakeIds = ["ahp", "kdi", "jh", "sm", "lee", "par", "cho", "use", "dat", "res", "tes", "app", "sky", "blu", "sta", "sun", "moo", "qwe", "asd", "zxc", "lio", "tig", "bea", "jin", "kim", "abc", "xyz", "pro", "edu", "uni"];
-        const plans = ["Standard", "Basic", "Premium"];
+        const plans = ["Standard", "Basic", "Pro"];
         const periods = [1, 2, 3, 6, 12];
 
         const tickerList = document.getElementById('ticker-list');
@@ -474,10 +474,6 @@
             const surname = prefix + randomNum + "***";
             const plan = plans[(i * 7 + 3) % plans.length];
             let period = 2;
-            if (plan === "Premium") {
-                const premiumPeriods = [2, 4, 6];
-                period = premiumPeriods[(i * 13 + 5) % premiumPeriods.length];
-            }
             
             // 오늘 포함 최근 1개월 (0~30일 전) 랜덤 날짜
             const randomOffsetDays = (i * 19 + 7) % 31;
@@ -504,10 +500,6 @@
                     const surname = prefix + randomNum + "***";
                     const plan = plans[(seed * 3 + 1) % plans.length];
                     let period = 2;
-                    if (plan === "Premium") {
-                        const premiumPeriods = [2, 4, 6];
-                        period = premiumPeriods[(seed * 7 + 2) % premiumPeriods.length];
-                    }
                     // 배열 가장 앞에 추가 (최신 날짜)
                     mockData.unshift({ surname, plan, period, regDate: targetDate });
                 }
@@ -522,7 +514,7 @@
                 li.className = "h-[37px] border-b border-gray-100/50 flex items-center justify-between text-xs text-gray-500 px-1";
                 
                 let badgeClass = "bg-indigo-50 text-indigo-600 border-indigo-100";
-                if (item.plan === "Premium") {
+                if (item.plan === "Pro") {
                     badgeClass = "bg-purple-50 text-purple-600 border-purple-100";
                 } else if (item.plan === "Basic") {
                     badgeClass = "bg-slate-50 text-slate-600 border-slate-100";
