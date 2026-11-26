@@ -1,5 +1,71 @@
 [
   {
+    "date": "2026-11-26",
+    "id": "aVBbRFnMe4M",
+    "title": "1점만 바뀌면 1등이 뒤집힌다? | One Point Can Flip the Ranking?",
+    "url": "https://youtu.be/aVBbRFnMe4M"
+  },
+  {
+    "date": "2026-11-25",
+    "id": "o9-edvcnefQ",
+    "title": "CR은 멀쩡한데 가중치가 이상하다면? | CR Looks Fine but the Weights Don't?",
+    "url": "https://youtu.be/o9-edvcnefQ"
+  },
+  {
+    "date": "2026-11-24",
+    "id": "BNSE4X-rO_o",
+    "title": "전문가 12명 중 9명이 같은 업계라면, 가중치도 쏠립니다 | 9 of 12 Experts from One Field? Your Weights Are Skewed",
+    "url": "https://youtu.be/BNSE4X-rO_o"
+  },
+  {
+    "date": "2026-11-23",
+    "id": "1ffgAoDo8zE",
+    "title": "전문가 의견이 안 모인다면? 델파이로 기준부터 다듬는 법 | Experts Disagree? Use Delphi Before AHP",
+    "url": "https://youtu.be/1ffgAoDo8zE"
+  },
+  {
+    "date": "2026-11-22",
+    "id": "Jjagj_0WSYA",
+    "title": "1점만 찍으면 가중치가 어떻게 될까? | If Respondents Only Pick 1, What Happens to the Weights?",
+    "url": "https://youtu.be/Jjagj_0WSYA"
+  },
+  {
+    "date": "2026-11-21",
+    "id": "mO0lrxktMy4",
+    "title": "CR 0.1, 왜 하필 0.1일까? | CR 0.1: Why 0.1, Not 0.05 or 0.2?",
+    "url": "https://youtu.be/mO0lrxktMy4"
+  },
+  {
+    "date": "2026-11-20",
+    "id": "2dsXvp2D8Hg",
+    "title": "CR 0.00인데 가중치가 이상하다면? | CR 0.00 but Weights Look Wrong?",
+    "url": "https://youtu.be/2dsXvp2D8Hg"
+  },
+  {
+    "date": "2026-11-19",
+    "id": "j_xdl7_4gdo",
+    "title": "전문가 답이 흔들린다면? 설문 전 이 2가지를 확인하세요 | If Expert Answers Waver, Check These Two Things",
+    "url": "https://youtu.be/j_xdl7_4gdo"
+  },
+  {
+    "date": "2026-11-18",
+    "id": "AbK8B3AEcOk",
+    "title": "심사 코멘트 5가지, 답은 준비됐나요? | Five Reviewer Questions, Are Your Answers Ready?",
+    "url": "https://youtu.be/AbK8B3AEcOk"
+  },
+  {
+    "date": "2026-11-17",
+    "id": "cEgWAkjciAg",
+    "title": "대안 하나 추가했더니 1등이 뒤집혔다? | Add One Alternative and the Winner Flips?",
+    "url": "https://youtu.be/cEgWAkjciAg"
+  },
+  {
+    "date": "2026-11-16",
+    "id": "RwrtKDE3yvI",
+    "title": "B가 1등일 줄 알았는데 C가 1등이라고? | You Expected B to Win, But C Won?",
+    "url": "https://youtu.be/RwrtKDE3yvI"
+  },
+  {
     "date": "2026-11-15",
     "id": "UHSX2sbBt_s",
     "title": "대안 점수, 합으로 나눌까 최댓값으로 나눌까? | Divide by Sum or by Max?",
