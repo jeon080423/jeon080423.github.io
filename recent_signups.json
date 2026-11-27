@@ -1,0 +1,56 @@
+{
+  "generated_at": "2026-11-27",
+  "source": "Registered_Users tab of master sheet (role=official only, i.e. 정식 사용자)",
+  "scope": "role=official, sorted by signup_date desc, max 100",
+  "count": 8,
+  "users": [
+    {
+      "id": "si***",
+      "plan": "Standard",
+      "period_months": 2,
+      "signup_date": "2026-11-22"
+    },
+    {
+      "id": "oh***",
+      "plan": "Standard",
+      "period_months": 2,
+      "signup_date": "2026-11-15"
+    },
+    {
+      "id": "c1***",
+      "plan": "Standard",
+      "period_months": 2,
+      "signup_date": "2026-10-31"
+    },
+    {
+      "id": "ha***",
+      "plan": "Standard",
+      "period_months": 2,
+      "signup_date": "2026-10-02"
+    },
+    {
+      "id": "mo***",
+      "plan": "Standard",
+      "period_months": null,
+      "signup_date": "2026-06-26"
+    },
+    {
+      "id": "so***",
+      "plan": "유료",
+      "period_months": 3,
+      "signup_date": "2026-06-17"
+    },
+    {
+      "id": "ki***",
+      "plan": "유료",
+      "period_months": 7,
+      "signup_date": "2026-05-26"
+    },
+    {
+      "id": "hj***",
+      "plan": "유료",
+      "period_months": 8,
+      "signup_date": "2026-04-22"
+    }
+  ]
+}

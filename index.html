@@ -217,7 +217,7 @@
                         <!-- 스크롤 영역 -->
                         <div class="relative overflow-hidden h-[150px]" id="ticker-container">
                             <ul class="transition-transform duration-500 ease-in-out" id="ticker-list" style="transform: translateY(0px);">
-                                <!-- JS 가상 데이터 렌더링 -->
+                                <!-- JS 실제 가입자 데이터 렌더링 (recent_signups.json) -->
                             </ul>
                         </div>
                     </div>
@@ -241,6 +241,9 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 누적 방문자 수 (A2: Supabase visit-count Edge Function — fetch 실패 시 숨김 유지, 가짜 숫자 없음) -->
+            <p id="visit-count-line" class="text-xs text-gray-400 mt-6 text-center" hidden></p>
         </div>
     </section>
 
@@ -340,7 +343,8 @@
                 feat3Desc: '바이올린 플롯(Violin Plot), 방사형 차트, CR(일관성 비율) 분포 등 학위 및 학술지 논문에 즉시 삽입 가능한 고품질 차트를 실시간으로 제공합니다.',
                 tickerTitle: "실시간 가입 현황",
                 tickerHeading: "정식 사용자 최근 가입 현황",
-                planSuffix: "개월"
+                planSuffix: "개월",
+                visitCountText: "누적 방문자 {n}명"
             },
             en: {
                 heroTitle: 'Reliable <span class="gradient-text">AHP Analysis & Software</span>,<br/>Start with AHP Master.',
@@ -360,7 +364,8 @@
                 feat3Desc: 'Provides high-quality, real-time charts ready for inclusion in dissertations and journals, such as Violin Plots, Radar Charts, and CR (Consistency Ratio) distributions.',
                 tickerTitle: "Live Registrations",
                 tickerHeading: "Recent Official Registrations",
-                planSuffix: " Months"
+                planSuffix: " Months",
+                visitCountText: "Total visitors: {n}"
             },
             ja: {
                 heroTitle: '信頼できる<span class="gradient-text">AHP分析ソフトウェア</span>、<br/>AHPマスターで始めましょう。',
@@ -380,7 +385,8 @@
                 feat3Desc: 'バイオリンプロット(Violin Plot)、レーダーチャート、CR（一貫性比率）分布など、学位・学術誌論文にそのまま挿入可能な高品質チャートをリアルタイムで提供します。',
                 tickerTitle: "リアルタイム登録状況",
                 tickerHeading: "正式ユーザーの最近の登録状況",
-                planSuffix: "ヶ月"
+                planSuffix: "ヶ月",
+                visitCountText: "累計訪問者数：{n}人"
             }
         };
 
@@ -420,6 +426,7 @@
             
             document.getElementById('ticker-title').innerText = t.tickerTitle;
             document.getElementById('ticker-heading').innerText = t.tickerHeading;
+            renderVisitCount();
 
             // Update plan periods dynamically
             const listItems = document.querySelectorAll('#ticker-list li');
@@ -448,71 +455,20 @@
         });
 
         // ==========================================
-        // 🟢 실시간 정식 가입자 가상 데이터 100개 및 가입일 생성
+        // 🟢 실시간 정식 가입자 데이터 (실제 데이터 연동)
+        // 마스터 시트 Registered_Users(role=official)에서 생성한
+        // recent_signups.json을 fetch해 표시한다. 가짜 생성 코드 없음.
         // ==========================================
-        const fakeIds = ["ahp", "kdi", "jh", "sm", "lee", "par", "cho", "use", "dat", "res", "tes", "app", "sky", "blu", "sta", "sun", "moo", "qwe", "asd", "zxc", "lio", "tig", "bea", "jin", "kim", "abc", "xyz", "pro", "edu", "uni"];
-        const plans = ["Standard", "Basic", "Pro"];
-        const periods = [1, 2, 3, 6, 12];
-
         const tickerList = document.getElementById('ticker-list');
-        const mockData = [];
-
-          // --- REAL USERS FROM DB ---
-          mockData.push({ surname: 'basic***', plan: 'Basic', period: 53, regDate: new Date('2026-07-07') });
-          // ---------------------------
-
-
-        // 기준일 (오늘: 2026년 7월 14일)
-        const startBaseDate = new Date(2026, 6, 14); // 7월은 Month index 6
-        const today = new Date();
-        const todayZero = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-
-        // 100개 초기 가상 데이터 생성 (오늘 포함 최근 1개월 이전 날짜로 랜덤 생성)
-        for (let i = 0; i < 100; i++) {
-            const prefix = fakeIds[i % fakeIds.length];
-            const randomNum = (i * 17) % 100;
-            const surname = prefix + randomNum + "***";
-            const plan = plans[(i * 7 + 3) % plans.length];
-            let period = 2;
-            
-            // 오늘 포함 최근 1개월 (0~30일 전) 랜덤 날짜
-            const randomOffsetDays = (i * 19 + 7) % 31;
-            const regDate = new Date(todayZero.getTime() - randomOffsetDays * 24 * 60 * 60 * 1000);
-            
-            mockData.push({ surname, plan, period, regDate });
-        }
-
-        // 날짜 순으로 정렬 (최신 가입자가 위로)
-        mockData.sort((a, b) => b.regDate - a.regDate);
-
-        // 24시 기준으로 매일 5명씩 자동 추가 시뮬레이션
-        const diffTime = todayZero - startBaseDate;
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-        if (diffDays > 0) {
-            // 기준일 다음날부터 오늘까지 지난 일수만큼 매일 5명씩 추가
-            for (let d = 1; d <= diffDays; d++) {
-                const targetDate = new Date(startBaseDate.getTime() + d * 24 * 60 * 60 * 1000);
-                for (let j = 0; j < 5; j++) {
-                    const seed = (d * 5 + j) * 13;
-                    const prefix = fakeIds[seed % fakeIds.length];
-                    const randomNum = (seed * 19) % 100;
-                    const surname = prefix + randomNum + "***";
-                    const plan = plans[(seed * 3 + 1) % plans.length];
-                    let period = 2;
-                    // 배열 가장 앞에 추가 (최신 날짜)
-                    mockData.unshift({ surname, plan, period, regDate: targetDate });
-                }
-            }
-        }
+        let signupData = [];
 
         // Ticker 가입 현황 리스트 렌더링
         function renderTicker() {
             tickerList.innerHTML = '';
-            mockData.forEach(item => {
+            signupData.forEach(item => {
                 const li = document.createElement('li');
                 li.className = "h-[37px] border-b border-gray-100/50 flex items-center justify-between text-xs text-gray-500 px-1";
-                
+
                 let badgeClass = "bg-indigo-50 text-indigo-600 border-indigo-100";
                 if (item.plan === "Pro") {
                     badgeClass = "bg-purple-50 text-purple-600 border-purple-100";
@@ -521,17 +477,23 @@
                 }
 
                 // 월/일 형식 포맷 (7/25)
-                const month = item.regDate.getMonth() + 1;
-                const date = item.regDate.getDate();
+                const regDate = new Date(item.signup_date + 'T00:00:00');
+                const month = regDate.getMonth() + 1;
+                const date = regDate.getDate();
                 const formattedDate = `${month}/${date}`;
-                
+
+                // 이용 기간이 없는 경우(무기한)에는 기간 표시를 생략한다
+                const periodHtml = (item.period_months != null)
+                    ? `<span class="text-[11px] text-gray-400 font-semibold period-text" data-months="${item.period_months}">${item.period_months}${currentLang === 'ko' ? '개월' : (currentLang === 'ja' ? 'ヶ月' : ' Months')}</span>`
+                    : '';
+
                 li.innerHTML = `
                     <div class="flex items-center gap-2">
-                        <span class="font-bold text-gray-800">${item.surname}</span>
+                        <span class="font-bold text-gray-800">${item.id}</span>
                         <span class="text-[10px] font-semibold px-1.5 py-0.2 rounded border ${badgeClass}">${item.plan}</span>
                         <span class="text-[10px] text-gray-400 font-medium">${formattedDate}</span>
                     </div>
-                    <span class="text-[11px] text-gray-400 font-semibold period-text" data-months="${item.period}">${item.period}${currentLang === 'ko' ? '개월' : (currentLang === 'ja' ? 'ヶ月' : ' Months')}</span>
+                    ${periodHtml}
                 `;
                 tickerList.appendChild(li);
             });
@@ -543,7 +505,7 @@
             setInterval(() => {
                 tickerList.style.transition = "transform 0.5s ease-in-out";
                 tickerList.style.transform = `translateY(-${itemHeight}px)`;
-                
+
                 setTimeout(() => {
                     tickerList.style.transition = "none";
                     tickerList.appendChild(tickerList.firstElementChild);
@@ -552,9 +514,86 @@
             }, 2000); // 2초 간격 회전
         }
 
-        // 가입 현황 초기화 및 실행
-        renderTicker();
-        startTicker();
+        // 실제 가입자 데이터 로드 후 가입 현황 초기화 및 실행
+        fetch('./recent_signups.json')
+            .then(res => res.json())
+            .then(data => {
+                signupData = (data.users || []).slice().sort((a, b) => b.signup_date.localeCompare(a.signup_date));
+                renderTicker();
+                startTicker();
+            })
+            .catch(err => {
+                console.error('가입 현황 데이터를 불러오지 못했습니다.', err);
+            });
+
+        // ==========================================
+        // 👥 누적 방문자 수 (Supabase visit-count Edge Function, A2)
+        // GET https://yqeyfwckpwtyzpncxceb.supabase.co/functions/v1/visit-count?page=landing
+        // 응답 { uv_total, pv_total, today_uv } — 누적 UV(uv_total)만 표시한다.
+        // - sessionStorage 가드: 한 세션당 한 번만 호출한다. 재방문 시에는
+        //   저장해 둔 UV 값을 그대로 표시하고 fetch하지 않는다.
+        // - fetch 실패(함수 미배포 404·네트워크 오류·비정상 응답) 시에는
+        //   조용히 건너뛴다: 표시줄은 숨김 상태로 두고 가짜 숫자로 채우지 않는다.
+        // - 인증 헤더 불필요 (Verify JWT OFF 전제, A1 참조).
+        // ==========================================
+        var VISIT_COUNT_URL = 'https://yqeyfwckpwtyzpncxceb.supabase.co/functions/v1/visit-count?page=landing';
+        var VISIT_COUNTED_KEY = 'ahp_visit_counted_v1';
+        var VISIT_UV_KEY = 'ahp_visit_uv_v1';
+        var lastVisitUv = null;
+
+        function sessionStoreGet(key) {
+            try { return window.sessionStorage.getItem(key); } catch (e) { return null; }
+        }
+        function sessionStoreSet(key, value) {
+            try { window.sessionStorage.setItem(key, value); } catch (e) { /* 저장 실패 시 가드 없이 진행 (서버 측 (hash, day) 중복 제거가 보호) */ }
+        }
+
+        // 저장된 UV가 있으면 현재 언어로 표시줄을 그린다. 없으면 숨김 유지.
+        function renderVisitCount() {
+            var line = document.getElementById('visit-count-line');
+            if (!line) return;
+            if (lastVisitUv == null) { line.hidden = true; return; }
+            var t = translations[currentLang] || translations.ko;
+            var locale = currentLang === 'en' ? 'en-US' : (currentLang === 'ja' ? 'ja-JP' : 'ko-KR');
+            line.textContent = (t.visitCountText || translations.ko.visitCountText).replace('{n}', lastVisitUv.toLocaleString(locale));
+            line.hidden = false;
+        }
+
+        (function recordVisitOncePerSession() {
+            var cached = sessionStoreGet(VISIT_UV_KEY);
+            if (cached != null && Number.isFinite(Number(cached))) {
+                lastVisitUv = Number(cached);
+                renderVisitCount();
+                return; // 이미 카운트된 세션: 재호출 없이 저장값만 표시
+            }
+            if (sessionStoreGet(VISIT_COUNTED_KEY)) return; // 카운트 시도 완료된 세션
+            var controller = null;
+            var timeoutId = null;
+            try {
+                controller = new AbortController();
+                timeoutId = setTimeout(function () { controller.abort(); }, 8000);
+            } catch (e) { controller = null; }
+            fetch(VISIT_COUNT_URL, controller ? { signal: controller.signal } : {})
+                .then(function (res) {
+                    if (!res.ok) throw new Error('visit-count HTTP ' + res.status);
+                    return res.json();
+                })
+                .then(function (data) {
+                    var uv = Number(data && data.uv_total);
+                    if (!Number.isFinite(uv)) throw new Error('visit-count invalid uv_total');
+                    lastVisitUv = uv;
+                    sessionStoreSet(VISIT_UV_KEY, String(uv));
+                    sessionStoreSet(VISIT_COUNTED_KEY, '1');
+                    renderVisitCount();
+                })
+                .catch(function () {
+                    // 조용히 건너뜀: 표시줄 숨김 유지, 가짜 숫자 없음.
+                    // 다음 페이지 로드에서 다시 시도한다 (VISIT_COUNTED_KEY 미설정).
+                })
+                .finally(function () {
+                    if (timeoutId != null) clearTimeout(timeoutId);
+                });
+        })();
 
         // 초기 언어 설정 적용
         updateLanguage(currentLang);
